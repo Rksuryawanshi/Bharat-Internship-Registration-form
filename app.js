@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 mongoose.connect('mongodb://localhost:27017/userDB', { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -22,21 +22,21 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-app.post('/register', (req, res) => {
-    const newUser = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password
-    });
+app.post('/register', async (req, res) => {
+    try {
+        const newUser = new User({
+            username: req.body.username,
+            email: req.body.email,
+            password: req.body.password
+        });
 
-    newUser.save((err) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log('User registered successfully.');
-            res.redirect('/');
-        }
-    });
+        await newUser.save();
+        console.log('User registered successfully.');
+        res.redirect('/');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 app.listen(PORT, () => {
